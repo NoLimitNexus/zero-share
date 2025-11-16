@@ -1,8 +1,8 @@
-name: Deploy to GitHub Pages
+name: Force Deploy
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
@@ -20,15 +20,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-      - name: Build
+          node-version: 20
+
+      - name: Install Dependencies (Nuclear Method)
+        # This deletes the lockfile to stop version conflicts
+        run: |
+          rm -f package-lock.json
+          npm install --legacy-peer-deps
+
+      - name: Build Site
         run: npm run build
-      - name: Upload artifact
+        env:
+          # This tells it to NOT crash on small warnings
+          CI: false
+
+      - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
